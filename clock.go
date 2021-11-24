@@ -18,12 +18,12 @@ type Clock struct {
 	cancel    context.CancelFunc
 }
 
-var (
-	_ = NewClock
-)
+func NewClock() *Clock {
+	return NewClockWP(time.Millisecond)
+}
 
-func NewClock(prec time.Duration) *Clock {
-	c := &Clock{Precision: prec}
+func NewClockWP(precision time.Duration) *Clock {
+	c := &Clock{Precision: precision}
 	return c
 }
 
@@ -33,7 +33,7 @@ func (c *Clock) Start() {
 	}
 	atomic.StoreInt32(&c.status, StatusActive)
 	if c.Precision == 0 {
-		c.Precision = time.Second
+		c.Precision = time.Millisecond
 	}
 	c.tick()
 	var ctx context.Context
@@ -54,8 +54,8 @@ func (c *Clock) Start() {
 
 func (c *Clock) Stop() {
 	if atomic.LoadInt32(&c.status) == StatusActive {
-		atomic.StoreInt32(&c.status, StatusIdle)
 		c.cancel()
+		atomic.StoreInt32(&c.status, StatusIdle)
 	}
 }
 

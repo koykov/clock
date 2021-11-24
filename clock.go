@@ -15,7 +15,7 @@ type Clock struct {
 	Precision time.Duration
 	status    int32
 	sec, nsec int64
-	cancel context.CancelFunc
+	cancel    context.CancelFunc
 }
 
 var (
@@ -28,7 +28,13 @@ func NewClock(prec time.Duration) *Clock {
 }
 
 func (c *Clock) Start() {
+	if atomic.LoadInt32(&c.status) == StatusActive {
+		return
+	}
 	atomic.StoreInt32(&c.status, StatusActive)
+	if c.Precision == 0 {
+		c.Precision = time.Second
+	}
 	c.tick()
 	var ctx context.Context
 	ctx, c.cancel = context.WithCancel(context.Background())

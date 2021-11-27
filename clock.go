@@ -17,8 +17,9 @@ type Clock struct {
 	// Settings this param too small (less than microseconds) or too big (great than second) is counterproductive.
 	Precision time.Duration
 
-	status    int32
-	sec, nsec int64
+	status int32
+	sec, nsec,
+	delta int64
 
 	cancel context.CancelFunc
 }
@@ -72,8 +73,13 @@ func (c *Clock) Now() time.Time {
 	return time.Unix(atomic.LoadInt64(&c.sec), atomic.LoadInt64(&c.nsec))
 }
 
+// Jump performs time travel.
+func (c *Clock) Jump(delta time.Duration) {
+	atomic.AddInt64(&c.delta, int64(delta))
+}
+
 func (c *Clock) tick() {
-	ts := time.Now().UnixNano()
+	ts := time.Now().UnixNano() + atomic.LoadInt64(&c.delta)
 	atomic.StoreInt64(&c.sec, ts/1e9)
 	atomic.StoreInt64(&c.nsec, ts%1e9)
 }

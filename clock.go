@@ -76,6 +76,7 @@ func (c *Clock) Now() time.Time {
 // Jump performs time travel.
 func (c *Clock) Jump(delta time.Duration) {
 	atomic.AddInt64(&c.delta, int64(delta))
+	c.tick()
 }
 
 func (c *Clock) tick() {

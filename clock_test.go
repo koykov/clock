@@ -29,6 +29,18 @@ func TestClock(t *testing.T) {
 			t.Errorf("diff is too big: %s, max %s", diff, allow)
 		}
 	})
+	t.Run("jump", func(t *testing.T) {
+		c := NewClock()
+		c.Start()
+		n0 := c.Now()
+		c.Jump(time.Minute * 2)
+		c.Jump(-time.Minute)
+		n1 := c.Now()
+		if diff := n1.Sub(n0); diff < time.Minute-time.Millisecond || diff > time.Minute+time.Millisecond {
+			t.Errorf("diff is too big: %s, max %s", diff, time.Minute)
+		}
+		c.Stop()
+	})
 }
 
 func BenchmarkClock(b *testing.B) {

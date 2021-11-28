@@ -81,7 +81,7 @@ func (c *Clock) Jump(delta time.Duration) {
 
 func (c *Clock) Relative(raw string) time.Time {
 	if dur, err := Relative(raw); err == nil {
-		return time.Now().Add(dur)
+		return c.Now().Add(dur)
 	}
 	return time.Time{}
 }

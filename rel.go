@@ -16,13 +16,12 @@ func Relative(raw string) (dur time.Duration, err error) {
 		err = ErrNoDur
 		return
 	}
-	raw = bytealg.ToLowerStr(raw)
 	if neg = raw[0] == '-'; neg {
 		off++
 	}
 	for off < len(raw) {
 		var (
-			n    int
+			n    time.Duration
 			unit string
 			ok   bool
 		)
@@ -34,12 +33,41 @@ func Relative(raw string) (dur time.Duration, err error) {
 			err = ErrBadUnit
 			return
 		}
-		// todo use n and unit
+		switch unit {
+		case "nsec", "ns":
+			dur += n
+		case "usec", "us", "µs":
+			dur += n * time.Microsecond
+		case "msec", "ms":
+			dur += n * time.Millisecond
+		case "seconds", "second", "sec", "s":
+			dur += n * time.Second
+		case "minutes", "minute", "min", "m":
+			dur += n * time.Minute
+		case "hours", "hour", "hr", "h":
+			dur += n * time.Hour
+		case "days", "day", "d":
+			dur += n * 24 * time.Hour
+		case "weeks", "week", "w":
+			dur += n * 168 * time.Hour
+		case "months", "month", "M":
+			d := 24 * time.Hour
+			dur += d*30 + d*44/100
+		case "years", "year", "y":
+			d := 24 * time.Hour
+			dur += d*365 + d*1/4
+		case "century", "cen", "c":
+			d := 24 * time.Hour
+			dur += d * 36525
+		case "millennium", "mil":
+			d := 24 * time.Hour
+			dur += d * 365250
+		}
 	}
 	return
 }
 
-func relNum(raw string, off int) (int, int, bool) {
+func relNum(raw string, off int) (time.Duration, int, bool) {
 	pos := off
 loop:
 	c := raw[pos]
@@ -49,27 +77,28 @@ loop:
 	}
 	if pos > off {
 		if i, err := strconv.Atoi(raw[off:pos]); err == nil {
-			return i, pos, true
+			return time.Duration(i), pos, true
 		}
 	}
 	return 0, off, false
 }
 
 func relUnit(raw string, off int) (string, int) {
+	if raw[off] == ' ' {
+		off++
+	}
 	pos := off
 loop:
 	if pos == len(raw)-1 {
-		return raw[off:pos], pos
+		return raw[off : pos+1], pos
 	}
 	c := raw[pos]
-	if c == ' ' {
-		off++
-		pos++
-		goto loop
-	}
 	if c != '0' && c != '1' && c != '2' && c != '3' && c != '4' && c != '5' && c != '6' && c != '7' && c != '8' && c != '9' {
 		pos++
 		goto loop
+	}
+	if raw[pos-1] == ' ' {
+		return raw[off : pos-1], pos
 	}
 	return raw[off:pos], pos
 }

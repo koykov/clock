@@ -41,6 +41,12 @@ func TestClock(t *testing.T) {
 		}
 		c.Stop()
 	})
+	t.Run("relative", func(t *testing.T) {
+		c := NewClock()
+		c.Start()
+		t.Log(c.Relative("300ms20s 5day"))
+		c.Stop()
+	})
 }
 
 func BenchmarkClock(b *testing.B) {

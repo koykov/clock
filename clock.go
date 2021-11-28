@@ -79,6 +79,13 @@ func (c *Clock) Jump(delta time.Duration) {
 	c.tick()
 }
 
+func (c *Clock) Relative(raw string) time.Time {
+	if dur, err := Relative(raw); err == nil {
+		return time.Now().Add(dur)
+	}
+	return time.Time{}
+}
+
 func (c *Clock) tick() {
 	ts := time.Now().UnixNano() + atomic.LoadInt64(&c.delta)
 	atomic.StoreInt64(&c.sec, ts/1e9)

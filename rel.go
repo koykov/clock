@@ -64,6 +64,9 @@ func Relative(raw string) (dur time.Duration, err error) {
 			dur += d * 365250
 		}
 	}
+	if neg {
+		dur = -dur
+	}
 	return
 }
 
@@ -90,7 +93,8 @@ func relUnit(raw string, off int) (string, int) {
 	pos := off
 loop:
 	if pos == len(raw)-1 {
-		return raw[off : pos+1], pos
+		pos++
+		return raw[off:pos], pos
 	}
 	c := raw[pos]
 	if c != '0' && c != '1' && c != '2' && c != '3' && c != '4' && c != '5' && c != '6' && c != '7' && c != '8' && c != '9' {

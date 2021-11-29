@@ -17,7 +17,7 @@ func TestClock(t *testing.T) {
 		)
 		c := NewClockWP(prec)
 		c.Start()
-		for i := 0; i < 500; i++ {
+		for i := 0; i < 10; i++ {
 			if diff = time.Now().Sub(c.Now()); diff > allow {
 				fail = true
 				break
@@ -41,12 +41,37 @@ func TestClock(t *testing.T) {
 		}
 		c.Stop()
 	})
-	t.Run("relative", func(t *testing.T) {
-		c := NewClock()
-		c.Start()
-		t.Log(c.Relative("300ms20s 5day"))
-		c.Stop()
-	})
+}
+
+func TestRelative(t *testing.T) {
+	spans := []struct {
+		key, exp string
+	}{
+		{"2h 30min", "2h30m0s"},
+		{"2 h", "2h0m0s"},
+		{"2hours", "2h0m0s"},
+		{"48hr", "48h0m0s"},
+		{"1y 12month", "9496h33m36s"},
+		{"55s500ms", "55.5s"},
+		{"300ms20s 5day", "120h0m20.3s"},
+		{"-2h 30min", "-2h30m0s"},
+		{"-2 h", "-2h0m0s"},
+		{"-2hours", "-2h0m0s"},
+		{"-48hr", "-48h0m0s"},
+		{"-1y 12month", "-9496h33m36s"},
+		{"-55s500ms", "-55.5s"},
+		{"-300ms20s 5day", "-120h0m20.3s"},
+	}
+	for _, span := range spans {
+		t.Run(span.key, func(t *testing.T) {
+			c := NewClock()
+			c.Start()
+			if ts := c.Relative(span.key).Sub(c.Now()).String(); ts != span.exp {
+				t.Errorf("relative fail: need %s, got %s", span.exp, ts)
+			}
+			c.Stop()
+		})
+	}
 }
 
 func BenchmarkClock(b *testing.B) {
@@ -67,4 +92,17 @@ func BenchmarkClock(b *testing.B) {
 		}
 		_ = n
 	})
+}
+
+func BenchmarkRelative(b *testing.B) {
+	span, exp := "300ms20s 5day", 120*time.Hour+20*time.Second+300*time.Millisecond
+	c := NewClockWP(time.Second)
+	c.Start()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		if ts := c.Relative(span).Sub(c.Now()); ts != exp {
+			b.Errorf("relative fail: need %s, got %s", exp, ts)
+		}
+	}
+	c.Stop()
 }

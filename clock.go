@@ -88,11 +88,15 @@ func (c *Clock) Relative(raw string) time.Time {
 	return time.Time{}
 }
 
-func (c *Clock) Schedule(dur time.Duration, fn func()) {
+func (c *Clock) Schedule(dur time.Duration, fn func()) error {
+	if atomic.LoadInt32(&c.status) == StatusActive {
+		return ErrSchedActive
+	}
 	if c.sched == nil {
 		c.sched = &sched{}
 	}
-	c.sched.register(dur, fn, c.Now())
+	c.sched.register(dur, fn, time.Now())
+	return nil
 }
 
 func (c *Clock) tick() {

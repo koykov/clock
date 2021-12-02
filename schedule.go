@@ -37,7 +37,7 @@ func (s *sched) register(dur time.Duration, fn func(), now time.Time) {
 }
 
 func (s *sched) apply(now time.Time) {
-	if s.locked() || len(s.buf) == 0 {
+	if len(s.buf) == 0 || s.locked() {
 		return
 	}
 	s.lock()

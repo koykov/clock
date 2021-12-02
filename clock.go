@@ -21,6 +21,8 @@ type Clock struct {
 	sec, nsec,
 	delta int64
 
+	sched *sched
+
 	cancel context.CancelFunc
 }
 
@@ -86,8 +88,18 @@ func (c *Clock) Relative(raw string) time.Time {
 	return time.Time{}
 }
 
+func (c *Clock) Schedule(dur time.Duration, fn func()) {
+	if c.sched == nil {
+		c.sched = &sched{}
+	}
+	c.sched.register(dur, fn, c.Now())
+}
+
 func (c *Clock) tick() {
 	ts := time.Now().UnixNano() + atomic.LoadInt64(&c.delta)
 	atomic.StoreInt64(&c.sec, ts/1e9)
 	atomic.StoreInt64(&c.nsec, ts%1e9)
+	if c.sched != nil {
+		c.sched.apply(c.Now())
+	}
 }

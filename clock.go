@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync/atomic"
 	"time"
+
+	"github.com/koykov/policy"
 )
 
 const (
@@ -95,7 +97,9 @@ func (c *Clock) Schedule(dur time.Duration, fn func()) error {
 	if c.sched == nil {
 		c.sched = &sched{}
 	}
+	c.sched.lock.SetPolicy(policy.Locked)
 	c.sched.register(dur, fn, time.Now())
+	c.sched.lock.SetPolicy(policy.LockFree)
 	return nil
 }
 

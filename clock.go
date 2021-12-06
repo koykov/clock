@@ -91,9 +91,6 @@ func (c *Clock) Relative(raw string) time.Time {
 }
 
 func (c *Clock) Schedule(dur time.Duration, fn func()) error {
-	if atomic.LoadInt32(&c.status) == StatusActive {
-		return ErrSchedActive
-	}
 	if c.sched == nil {
 		c.sched = &sched{}
 	}

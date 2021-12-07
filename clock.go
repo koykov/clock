@@ -90,14 +90,13 @@ func (c *Clock) Relative(raw string) time.Time {
 	return time.Time{}
 }
 
-func (c *Clock) Schedule(dur time.Duration, fn func()) error {
+func (c *Clock) Schedule(dur time.Duration, fn func()) {
 	if c.sched == nil {
 		c.sched = &sched{}
 	}
 	c.sched.lock.SetPolicy(policy.Locked)
 	c.sched.register(dur, fn, time.Now())
 	c.sched.lock.SetPolicy(policy.LockFree)
-	return nil
 }
 
 func (c *Clock) tick() {

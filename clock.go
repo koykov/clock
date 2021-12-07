@@ -41,7 +41,7 @@ func NewClockWP(precision time.Duration) *Clock {
 
 // Start initializes and starts the clock.
 func (c *Clock) Start() {
-	if atomic.LoadInt32(&c.status) == StatusActive {
+	if c.Active() {
 		return
 	}
 	atomic.StoreInt32(&c.status, StatusActive)
@@ -70,6 +70,10 @@ func (c *Clock) Stop() {
 		c.cancel()
 		atomic.StoreInt32(&c.status, StatusIdle)
 	}
+}
+
+func (c Clock) Active() bool {
+	return atomic.LoadInt32(&c.status) == StatusActive
 }
 
 // Now returns current time.

@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// Stuck represents stuck clock implements Interface.
 type Stuck struct {
 	sec, nsec int64
 }

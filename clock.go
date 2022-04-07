@@ -13,6 +13,11 @@ const (
 	StatusActive
 )
 
+// Interface represents clock interface.
+type Interface interface {
+	Now() time.Time
+}
+
 // Clock is a fast replacement of base methods of time package.
 type Clock struct {
 	// Clock precision.

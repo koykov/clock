@@ -1,21 +1,22 @@
 package clock
 
 import (
+	"bytes"
 	"testing"
 	"time"
 )
 
 func TestFormat(t *testing.T) {
-	t.Run("layout", func(t *testing.T) {
+	t.Run("Layout", func(t *testing.T) {
 		t.Log(time.Now().Format(time.Layout))
 	})
-	t.Run("ansic", func(t *testing.T) {
+	t.Run("ANSIC", func(t *testing.T) {
 		t.Log(time.Now().Format(time.ANSIC))
 	})
-	t.Run("unixdate", func(t *testing.T) {
+	t.Run("UnixDate", func(t *testing.T) {
 		t.Log(time.Now().Format(time.UnixDate))
 	})
-	t.Run("rubydate", func(t *testing.T) {
+	t.Run("RubyDate", func(t *testing.T) {
 		t.Log(time.Now().Format(time.RubyDate))
 	})
 	t.Run("RFC822", func(t *testing.T) {
@@ -53,5 +54,48 @@ func TestFormat(t *testing.T) {
 	})
 	t.Run("StampNano", func(t *testing.T) {
 		t.Log(time.Now().Format(time.StampNano))
+	})
+}
+
+func TestFormatInternal(t *testing.T) {
+	assert := func(t *testing.T, buf []byte, x, w int, expect []byte) {
+		buf = buf[:0]
+		buf = appendInt(buf, x, w)
+		if !bytes.Equal(buf, expect) {
+			t.FailNow()
+		}
+	}
+	var buf []byte
+	t.Run("appendInt 2018 2", func(t *testing.T) {
+		assert(t, buf, 2018, 2, []byte("18"))
+	})
+	t.Run("appendInt 1997 4", func(t *testing.T) {
+		assert(t, buf, 1997, 4, []byte("1997"))
+	})
+	t.Run("appendInt 34 4", func(t *testing.T) {
+		assert(t, buf, 34, 4, []byte("0034"))
+	})
+}
+
+func BenchmarkFormatInternal(b *testing.B) {
+	assert := func(b *testing.B, buf []byte, x, w int, expect []byte) {
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			buf = buf[:0]
+			buf = appendInt(buf, x, w)
+			if !bytes.Equal(buf, expect) {
+				b.FailNow()
+			}
+		}
+	}
+	var buf []byte
+	b.Run("appendInt 2018 2", func(b *testing.B) {
+		assert(b, buf, 2018, 2, []byte("18"))
+	})
+	b.Run("appendInt 1997 4", func(b *testing.B) {
+		assert(b, buf, 1997, 4, []byte("1997"))
+	})
+	b.Run("appendInt 34 4", func(b *testing.B) {
+		assert(b, buf, 34, 4, []byte("0034"))
 	})
 }

@@ -1,5 +1,12 @@
 package clock
 
+import (
+	"time"
+
+	"github.com/koykov/bytealg"
+	"github.com/koykov/fastconv"
+)
+
 const (
 	Layout      = "%m/%d %h:%m:%s%p '%y %z"
 	ANSIC       = "%a %b %d %h:%m:%s %Y"
@@ -18,3 +25,56 @@ const (
 	StampMicro  = "b %d %h:%m:%s.%u"
 	StampNano   = "b %d %h:%m:%s.%n"
 )
+
+func AppendFormat(dst []byte, format string, datetime time.Time) ([]byte, error) {
+	return appendFmt(dst, fastconv.S2B(format), datetime)
+}
+
+func Format(format string, datetime time.Time) ([]byte, error) {
+	return AppendFormat(nil, format, datetime)
+}
+
+func FormatStr(format string, datetime time.Time) (string, error) {
+	r, err := AppendFormat(nil, format, datetime)
+	if err != nil {
+		return "", err
+	}
+	return fastconv.B2S(r), nil
+}
+
+func appendFmt(buf []byte, format []byte, dt time.Time) ([]byte, error) {
+	off := 0
+	for {
+		p := bytealg.IndexByteAtLR(format, '%', off)
+		if p == -1 || p == len(format)-1 {
+			buf = append(buf, format[off:]...)
+			return buf, nil
+		}
+		switch format[p+1] {
+		case 'y':
+			year := dt.Year()
+			buf = appendInt(buf, year%100, 2)
+		}
+	}
+	return buf, nil
+}
+
+func appendInt(buf []byte, x, w int) []byte {
+	if x < 0 {
+		buf = append(buf, '-')
+	}
+	off := len(buf)
+	buf = bytealg.GrowDelta(buf, w)
+	c, pad := w-1, false
+	for c = w - 1; c >= 0; c-- {
+		if pad {
+			buf[off+c] = '0'
+		} else {
+			buf[off+c] = byte('0' + x%10)
+		}
+		if x = x / 10; x == 0 {
+			pad = true
+		}
+	}
+	return buf
+}

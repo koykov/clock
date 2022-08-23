@@ -1,6 +1,7 @@
 package clock
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/koykov/bytealg"
@@ -50,13 +51,24 @@ func appendFmt(buf []byte, format []byte, dt time.Time) ([]byte, error) {
 			buf = append(buf, format[off:]...)
 			return buf, nil
 		}
+		if p-1 > off {
+			buf = append(buf, format[off:p]...)
+		}
 		switch format[p+1] {
+		case '%':
+			buf = append(buf, '%')
 		case 'y':
 			year := dt.Year()
 			buf = appendInt(buf, year%100, 2)
+		case 'Y':
+			year := dt.Year()
+			buf = appendInt(buf, year, 4)
+		case 'C':
+			year := dt.Year()
+			buf = strconv.AppendInt(buf, int64(year/100), 10)
 		}
+		off = p + 2
 	}
-	return buf, nil
 }
 
 func appendInt(buf []byte, x, w int) []byte {

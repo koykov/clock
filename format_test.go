@@ -7,6 +7,22 @@ import (
 )
 
 func TestFormat(t *testing.T) {
+	now, _ := time.Parse("2006", "1997")
+	t.Run("mod", func(t *testing.T) {
+		t.Log(FormatStr("mod symbol: %%", time.Now()))
+	})
+	t.Run("year short", func(t *testing.T) {
+		t.Log(FormatStr("year short: %y", now))
+	})
+	t.Run("year", func(t *testing.T) {
+		t.Log(FormatStr("year: %Y", now))
+	})
+	t.Run("century", func(t *testing.T) {
+		t.Log(FormatStr("century: %C", now))
+	})
+}
+
+func TestFormatNativeLayout(t *testing.T) {
 	t.Run("Layout", func(t *testing.T) {
 		t.Log(time.Now().Format(time.Layout))
 	})

@@ -4,21 +4,36 @@ import (
 	"bytes"
 	"testing"
 	"time"
+
+	"github.com/koykov/fastconv"
 )
 
 func TestFormat(t *testing.T) {
+	assert := func(t *testing.T, dt time.Time, format, expect string, err error) {
+		r, err1 := FormatStr(format, dt)
+		if err != nil && err1 != err {
+			t.FailNow()
+			return
+		}
+		if r != expect {
+			t.FailNow()
+		}
+	}
 	now, _ := time.Parse("2006", "1997")
+	t.Run("eof", func(t *testing.T) {
+		assert(t, now, "unexpected EOF: %", "", ErrBadEOF)
+	})
 	t.Run("mod", func(t *testing.T) {
-		t.Log(FormatStr("mod symbol: %%", time.Now()))
+		assert(t, now, "mod symbol: %%", "mod symbol: %", nil)
 	})
 	t.Run("year short", func(t *testing.T) {
-		t.Log(FormatStr("year short: %y", now))
+		assert(t, now, "year short: %y", "year short: 97", nil)
 	})
 	t.Run("year", func(t *testing.T) {
-		t.Log(FormatStr("year: %Y", now))
+		assert(t, now, "year short: %Y", "year short: 1997", nil)
 	})
 	t.Run("century", func(t *testing.T) {
-		t.Log(FormatStr("century: %C", now))
+		assert(t, now, "year short: %C", "year short: 19", nil)
 	})
 }
 
@@ -90,6 +105,43 @@ func TestFormatInternal(t *testing.T) {
 	})
 	t.Run("appendInt 34 4", func(t *testing.T) {
 		assert(t, buf, 34, 4, []byte("0034"))
+	})
+}
+
+func BenchmarkFormat(b *testing.B) {
+	assert := func(b *testing.B, dt time.Time, format, expect string, err error) {
+		var (
+			buf  []byte
+			err1 error
+		)
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			buf = buf[:0]
+			buf, err1 = AppendFormat(buf, format, dt)
+			if err != nil && err1 != err {
+				b.FailNow()
+				return
+			}
+			if fastconv.B2S(buf) != expect {
+				b.FailNow()
+			}
+		}
+	}
+	now, _ := time.Parse("2006", "1997")
+	b.Run("eof", func(b *testing.B) {
+		assert(b, now, "unexpected EOF: %", "", ErrBadEOF)
+	})
+	b.Run("mod", func(b *testing.B) {
+		assert(b, now, "mod symbol: %%", "mod symbol: %", nil)
+	})
+	b.Run("year short", func(b *testing.B) {
+		assert(b, now, "year short: %y", "year short: 97", nil)
+	})
+	b.Run("year", func(b *testing.B) {
+		assert(b, now, "year short: %Y", "year short: 1997", nil)
+	})
+	b.Run("century", func(b *testing.B) {
+		assert(b, now, "year short: %C", "year short: 19", nil)
 	})
 }
 

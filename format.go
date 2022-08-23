@@ -47,9 +47,12 @@ func appendFmt(buf []byte, format []byte, dt time.Time) ([]byte, error) {
 	off := 0
 	for {
 		p := bytealg.IndexByteAtLR(format, '%', off)
-		if p == -1 || p == len(format)-1 {
+		if p == -1 {
 			buf = append(buf, format[off:]...)
 			return buf, nil
+		}
+		if p == len(format)-1 {
+			return buf, ErrBadEOF
 		}
 		if p-1 > off {
 			buf = append(buf, format[off:p]...)

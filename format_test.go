@@ -78,6 +78,41 @@ func TestFormat(t *testing.T) {
 	t.Run("day long", func(t *testing.T) {
 		assert(t, now, "day long: %A", "day long: Saturday", nil)
 	})
+
+	dt := time.Unix(1136239445, 123456789).UTC()
+	t.Run("hour (zero pad)", func(t *testing.T) {
+		assert(t, dt, "hour (zero pad): %H", "hour (zero pad): 22", nil)
+	})
+	t.Run("hour (space pad)", func(t *testing.T) {
+		assert(t, dt, "hour (space pad): %k", "hour (space pad): 22", nil)
+	})
+	t.Run("hour12 (zero pad)", func(t *testing.T) {
+		assert(t, dt, "hour12 (zero pad): %I", "hour12 (zero pad): 10", nil)
+	})
+	t.Run("hour12 (space pad)", func(t *testing.T) {
+		assert(t, dt, "hour12 (space pad): %l", "hour12 (space pad): 10", nil)
+	})
+	t.Run("minute", func(t *testing.T) {
+		assert(t, dt, "minute: %M", "minute: 04", nil)
+	})
+	t.Run("second", func(t *testing.T) {
+		assert(t, dt, "second: %S", "second: 05", nil)
+	})
+	t.Run("AM/PM", func(t *testing.T) {
+		assert(t, dt, "AM/PM: %p", "AM/PM: PM", nil)
+	})
+	t.Run("am/pm", func(t *testing.T) {
+		assert(t, dt, "am/pm: %P", "am/pm: pm", nil)
+	})
+	t.Run("complex r", func(t *testing.T) {
+		assert(t, dt, "complex r: %r", "complex r: 10:04:05 PM", nil)
+	})
+	t.Run("complex R", func(t *testing.T) {
+		assert(t, dt, "complex R: %r", "complex R: 10:04", nil)
+	})
+	t.Run("complex T", func(t *testing.T) {
+		assert(t, dt, "complex R: %r", "complex R: 10:04:05", nil)
+	})
 }
 
 func TestFormatNativeLayout(t *testing.T) {

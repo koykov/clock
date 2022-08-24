@@ -74,6 +74,10 @@ var (
 		"November",
 		"December",
 	}
+
+	complexr = []byte("%I:%M:%S %p")
+	complexR = []byte("%H:%M")
+	complexT = []byte("%H:%M:%S")
 )
 
 func AppendFormat(dst []byte, format string, datetime time.Time) ([]byte, error) {
@@ -188,6 +192,37 @@ func appendFmt(buf []byte, format []byte, dt time.Time) ([]byte, error) {
 		case 'k':
 			hour := dt.Hour()
 			buf = appendInt(buf, hour, 2, ' ')
+		case 'I':
+			hour := dt.Hour()
+			buf = appendInt(buf, hour%12, 2, '0')
+		case 'l':
+			hour := dt.Hour()
+			buf = appendInt(buf, hour%12, 2, ' ')
+		case 'M':
+			min := dt.Minute()
+			buf = appendInt(buf, min, 2, '0')
+		case 'S':
+			sec := dt.Second()
+			buf = appendInt(buf, sec, 2, '0')
+		case 'p':
+			if dt.Hour() > 12 {
+				buf = append(buf, "PM"...)
+			} else {
+				buf = append(buf, "AM"...)
+			}
+		case 'P':
+			if dt.Hour() > 12 {
+				buf = append(buf, "pm"...)
+			} else {
+				buf = append(buf, "am"...)
+			}
+		// complex
+		case 'r':
+			buf, _ = appendFmt(buf, complexr, dt)
+		case 'R':
+			buf, _ = appendFmt(buf, complexR, dt)
+		case 'T':
+			buf, _ = appendFmt(buf, complexT, dt)
 		}
 		off = p + 2
 	}

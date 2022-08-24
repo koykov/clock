@@ -216,6 +216,8 @@ func appendFmt(buf []byte, format []byte, dt time.Time) ([]byte, error) {
 			} else {
 				buf = append(buf, "am"...)
 			}
+		case 'X':
+			buf = dt.AppendFormat(buf, "15:04:05")
 		// complex
 		case 'r':
 			buf, _ = appendFmt(buf, complexr, dt)

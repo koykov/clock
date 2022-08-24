@@ -104,6 +104,9 @@ func TestFormat(t *testing.T) {
 	t.Run("am/pm", func(t *testing.T) {
 		assert(t, dt, "am/pm: %P", "am/pm: pm", nil)
 	})
+	t.Run("nat time", func(t *testing.T) {
+		assert(t, dt, "nat time: %X", "nat time: 22:04:05", nil)
+	})
 	t.Run("complex r", func(t *testing.T) {
 		assert(t, dt, "complex r: %r", "complex r: 10:04:05 PM", nil)
 	})

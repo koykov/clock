@@ -132,22 +132,22 @@ func TestFormatNativeLayout(t *testing.T) {
 }
 
 func TestFormatInternal(t *testing.T) {
-	assert := func(t *testing.T, buf []byte, x, w int, expect []byte) {
+	assert := func(t *testing.T, buf []byte, x, w int, pad byte, expect []byte) {
 		buf = buf[:0]
-		buf = appendInt(buf, x, w)
+		buf = appendInt(buf, x, w, pad)
 		if !bytes.Equal(buf, expect) {
 			t.FailNow()
 		}
 	}
 	var buf []byte
 	t.Run("appendInt 2018 2", func(t *testing.T) {
-		assert(t, buf, 2018, 2, []byte("18"))
+		assert(t, buf, 2018, 2, '0', []byte("18"))
 	})
 	t.Run("appendInt 1997 4", func(t *testing.T) {
-		assert(t, buf, 1997, 4, []byte("1997"))
+		assert(t, buf, 1997, 4, '0', []byte("1997"))
 	})
 	t.Run("appendInt 34 4", func(t *testing.T) {
-		assert(t, buf, 34, 4, []byte("0034"))
+		assert(t, buf, 34, 4, '0', []byte("0034"))
 	})
 }
 
@@ -189,11 +189,11 @@ func BenchmarkFormat(b *testing.B) {
 }
 
 func BenchmarkFormatInternal(b *testing.B) {
-	assert := func(b *testing.B, buf []byte, x, w int, expect []byte) {
+	assert := func(b *testing.B, buf []byte, x, w int, pad byte, expect []byte) {
 		b.ReportAllocs()
 		for i := 0; i < b.N; i++ {
 			buf = buf[:0]
-			buf = appendInt(buf, x, w)
+			buf = appendInt(buf, x, w, pad)
 			if !bytes.Equal(buf, expect) {
 				b.FailNow()
 			}
@@ -201,12 +201,12 @@ func BenchmarkFormatInternal(b *testing.B) {
 	}
 	var buf []byte
 	b.Run("appendInt 2018 2", func(b *testing.B) {
-		assert(b, buf, 2018, 2, []byte("18"))
+		assert(b, buf, 2018, 2, '0', []byte("18"))
 	})
 	b.Run("appendInt 1997 4", func(b *testing.B) {
-		assert(b, buf, 1997, 4, []byte("1997"))
+		assert(b, buf, 1997, 4, '0', []byte("1997"))
 	})
 	b.Run("appendInt 34 4", func(b *testing.B) {
-		assert(b, buf, 34, 4, []byte("0034"))
+		assert(b, buf, 34, 4, '0', []byte("0034"))
 	})
 }

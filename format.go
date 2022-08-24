@@ -112,17 +112,17 @@ func appendFmt(buf []byte, format []byte, dt time.Time) ([]byte, error) {
 		// year
 		case 'y':
 			year := dt.Year()
-			buf = appendInt(buf, year%100, 2)
+			buf = appendInt(buf, year%100, 2, '0')
 		case 'Y':
 			year := dt.Year()
-			buf = appendInt(buf, year, 4)
+			buf = appendInt(buf, year, 4, '0')
 		case 'C':
 			year := dt.Year()
 			buf = strconv.AppendInt(buf, int64(year/100), 10)
 		// month
 		case 'm':
 			month := dt.Month()
-			buf = appendInt(buf, int(month), 2)
+			buf = appendInt(buf, int(month), 2, '0')
 		case 'b':
 			month := dt.Month()
 			buf = append(buf, shortMonthNames[month-1]...)
@@ -138,10 +138,10 @@ func appendFmt(buf []byte, format []byte, dt time.Time) ([]byte, error) {
 				return buf, nil
 			}
 			n := ((yd - wd) / 7) + 1
-			buf = appendInt(buf, n, 2)
+			buf = appendInt(buf, n, 2, '0')
 		case 'V':
 			_, w := dt.ISOWeek()
-			buf = appendInt(buf, w, 2)
+			buf = appendInt(buf, w, 2, '0')
 		case 'W':
 			yd := dt.YearDay()
 			wd := int(dt.Weekday())
@@ -150,18 +150,19 @@ func appendFmt(buf []byte, format []byte, dt time.Time) ([]byte, error) {
 				off1 += 7
 			}
 			if yd < off1 {
-				buf = append(buf, '0', '0')
-				return buf, nil
+				buf = append(buf, '0')
+				buf = append(buf, '0')
+			} else {
+				n := ((yd - off1) / 7) + 1
+				buf = appendInt(buf, n, 2, '0')
 			}
-			n := ((yd - off1) / 7) + 1
-			buf = appendInt(buf, n, 2)
 		// day
 		case 'd':
 			day := dt.Day()
-			buf = appendInt(buf, day, 2)
+			buf = appendInt(buf, day, 2, '0')
 		case 'j':
 			day := dt.YearDay()
-			buf = appendInt(buf, day, 3)
+			buf = appendInt(buf, day, 3, '0')
 		case 'w':
 			day := dt.Weekday()
 			buf = append(buf, byte('0'+int(day)))
@@ -179,30 +180,34 @@ func appendFmt(buf []byte, format []byte, dt time.Time) ([]byte, error) {
 			buf = append(buf, longDayNames[day]...)
 		case 'e':
 			day := dt.Day()
-			if day < 10 {
-				buf = append(buf, ' ')
-			}
-			buf = strconv.AppendInt(buf, int64(day), 10)
+			buf = appendInt(buf, day, 2, ' ')
+		// time
+		case 'H':
+			hour := dt.Hour()
+			buf = appendInt(buf, hour, 2, '0')
+		case 'k':
+			hour := dt.Hour()
+			buf = appendInt(buf, hour, 2, ' ')
 		}
 		off = p + 2
 	}
 }
 
-func appendInt(buf []byte, x, w int) []byte {
+func appendInt(buf []byte, x, w int, pad byte) []byte {
 	if x < 0 {
 		buf = append(buf, '-')
 	}
 	off := len(buf)
 	buf = bytealg.GrowDelta(buf, w)
-	c, pad := w-1, false
+	c, pad1 := w-1, false
 	for c = w - 1; c >= 0; c-- {
-		if pad {
-			buf[off+c] = '0'
+		if pad1 {
+			buf[off+c] = pad
 		} else {
 			buf[off+c] = byte('0' + x%10)
 		}
 		if x = x / 10; x == 0 {
-			pad = true
+			pad1 = true
 		}
 	}
 	return buf

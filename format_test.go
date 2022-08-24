@@ -19,13 +19,14 @@ func TestFormat(t *testing.T) {
 			t.FailNow()
 		}
 	}
-	now, _ := time.Parse("2006", "1997")
+	now, _ := time.Parse("2006-01-02", "1997-04-19")
 	t.Run("eof", func(t *testing.T) {
 		assert(t, now, "unexpected EOF: %", "", ErrBadEOF)
 	})
 	t.Run("mod", func(t *testing.T) {
 		assert(t, now, "mod symbol: %%", "mod symbol: %", nil)
 	})
+
 	t.Run("year short", func(t *testing.T) {
 		assert(t, now, "year short: %y", "year short: 97", nil)
 	})
@@ -34,6 +35,48 @@ func TestFormat(t *testing.T) {
 	})
 	t.Run("century", func(t *testing.T) {
 		assert(t, now, "year short: %C", "year short: 19", nil)
+	})
+
+	t.Run("month", func(t *testing.T) {
+		assert(t, now, "month: %m", "month: 04", nil)
+	})
+	t.Run("month short", func(t *testing.T) {
+		assert(t, now, "month short: %b", "month short: Apr", nil)
+	})
+	t.Run("month long", func(t *testing.T) {
+		assert(t, now, "month long: %B", "month long: April", nil)
+	})
+
+	t.Run("week number (sun)", func(t *testing.T) {
+		assert(t, now, "week number (sun): %U", "week number (sun): 15", nil)
+	})
+	t.Run("week number (iso)", func(t *testing.T) {
+		assert(t, now, "week number (iso): %V", "week number (iso): 16", nil)
+	})
+	t.Run("week number (mon)", func(t *testing.T) {
+		assert(t, now, "week number (mon): %W", "week number (mon): 15", nil)
+	})
+
+	t.Run("day", func(t *testing.T) {
+		assert(t, now, "day: %d", "day: 19", nil)
+	})
+	t.Run("day of month (space)", func(t *testing.T) {
+		assert(t, now, "day: %e", "day: 19", nil)
+	})
+	t.Run("day of year", func(t *testing.T) {
+		assert(t, now, "day of year: %j", "day of year: 109", nil)
+	})
+	t.Run("day of week", func(t *testing.T) {
+		assert(t, now, "day of week: %w", "day of week: 6", nil)
+	})
+	t.Run("day of week (iso)", func(t *testing.T) {
+		assert(t, now, "day of week (iso): %u", "day of week (iso): 6", nil)
+	})
+	t.Run("day short", func(t *testing.T) {
+		assert(t, now, "day short: %a", "day short: Sat", nil)
+	})
+	t.Run("day long", func(t *testing.T) {
+		assert(t, now, "day long: %A", "day long: Saturday", nil)
 	})
 }
 

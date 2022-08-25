@@ -75,18 +75,11 @@ var (
 		"December",
 	}
 
-	complexr = []byte("%I:%M:%S %p")
-	complexR = []byte("%H:%M")
-	complexT = []byte("%H:%M:%S")
-	complexc = []byte("%a %b %e %H:%M:%S %Y")
-	complexD = []byte("%m/%d/%y")
-	complexF = []byte("%Y-%m-%d")
-
 	_ = Format
 )
 
 func AppendFormat(dst []byte, format string, datetime time.Time) ([]byte, error) {
-	return appendFmt(dst, fastconv.S2B(format), datetime)
+	return appendFmt(dst, format, datetime)
 }
 
 func Format(format string, datetime time.Time) ([]byte, error) {
@@ -101,10 +94,10 @@ func FormatStr(format string, datetime time.Time) (string, error) {
 	return fastconv.B2S(r), nil
 }
 
-func appendFmt(buf []byte, format []byte, dt time.Time) ([]byte, error) {
+func appendFmt(buf []byte, format string, t time.Time) ([]byte, error) {
 	off := 0
 	for {
-		p := bytealg.IndexByteAtLR(format, '%', off)
+		p := bytealg.IndexAtStr(format, "%", off)
 		if p == -1 {
 			buf = append(buf, format[off:]...)
 			return buf, nil
@@ -120,28 +113,28 @@ func appendFmt(buf []byte, format []byte, dt time.Time) ([]byte, error) {
 			buf = append(buf, '%')
 		// year
 		case 'y':
-			year := dt.Year()
+			year := t.Year()
 			buf = appendInt(buf, year%100, 2, '0')
 		case 'Y':
-			year := dt.Year()
+			year := t.Year()
 			buf = appendInt(buf, year, 4, '0')
 		case 'C':
-			year := dt.Year()
+			year := t.Year()
 			buf = strconv.AppendInt(buf, int64(year/100), 10)
 		// month
 		case 'm':
-			month := dt.Month()
+			month := t.Month()
 			buf = appendInt(buf, int(month), 2, '0')
 		case 'b':
-			month := dt.Month()
+			month := t.Month()
 			buf = append(buf, shortMonthNames[month-1]...)
 		case 'B':
-			month := dt.Month()
+			month := t.Month()
 			buf = append(buf, longMonthNames[month-1]...)
 		// week
 		case 'U':
-			yd := dt.YearDay()
-			wd := int(dt.Weekday())
+			yd := t.YearDay()
+			wd := int(t.Weekday())
 			if yd < wd {
 				buf = append(buf, '0', '0')
 				return buf, nil
@@ -149,11 +142,11 @@ func appendFmt(buf []byte, format []byte, dt time.Time) ([]byte, error) {
 			n := ((yd - wd) / 7) + 1
 			buf = appendInt(buf, n, 2, '0')
 		case 'V':
-			_, w := dt.ISOWeek()
+			_, w := t.ISOWeek()
 			buf = appendInt(buf, w, 2, '0')
 		case 'W':
-			yd := dt.YearDay()
-			wd := int(dt.Weekday())
+			yd := t.YearDay()
+			wd := int(t.Weekday())
 			off1 := wd - 1
 			if off1 < 0 {
 				off1 += 7
@@ -167,79 +160,79 @@ func appendFmt(buf []byte, format []byte, dt time.Time) ([]byte, error) {
 			}
 		// day
 		case 'd':
-			day := dt.Day()
+			day := t.Day()
 			buf = appendInt(buf, day, 2, '0')
 		case 'j':
-			day := dt.YearDay()
+			day := t.YearDay()
 			buf = appendInt(buf, day, 3, '0')
 		case 'w':
-			day := dt.Weekday()
+			day := t.Weekday()
 			buf = append(buf, byte('0'+int(day)))
 		case 'u':
-			day := dt.Weekday()
+			day := t.Weekday()
 			if day < 1 {
 				day += 7
 			}
 			buf = append(buf, byte('0'+day))
 		case 'a':
-			day := dt.Weekday()
+			day := t.Weekday()
 			buf = append(buf, shortDayNames[day]...)
 		case 'A':
-			day := dt.Weekday()
+			day := t.Weekday()
 			buf = append(buf, longDayNames[day]...)
 		case 'e':
-			day := dt.Day()
+			day := t.Day()
 			buf = appendInt(buf, day, 2, ' ')
 		// time
 		case 'H':
-			hour := dt.Hour()
+			hour := t.Hour()
 			buf = appendInt(buf, hour, 2, '0')
 		case 'k':
-			hour := dt.Hour()
+			hour := t.Hour()
 			buf = appendInt(buf, hour, 2, ' ')
 		case 'I':
-			hour := dt.Hour()
+			hour := t.Hour()
 			buf = appendInt(buf, hour%12, 2, '0')
 		case 'l':
-			hour := dt.Hour()
+			hour := t.Hour()
 			buf = appendInt(buf, hour%12, 2, ' ')
 		case 'M':
-			min := dt.Minute()
+			min := t.Minute()
 			buf = appendInt(buf, min, 2, '0')
 		case 'S':
-			sec := dt.Second()
+			sec := t.Second()
 			buf = appendInt(buf, sec, 2, '0')
 		case 'p':
-			if dt.Hour() > 12 {
+			if t.Hour() > 12 {
 				buf = append(buf, "PM"...)
 			} else {
 				buf = append(buf, "AM"...)
 			}
 		case 'P':
-			if dt.Hour() > 12 {
+			if t.Hour() > 12 {
 				buf = append(buf, "pm"...)
 			} else {
 				buf = append(buf, "am"...)
 			}
 		case 'X':
-			buf = dt.AppendFormat(buf, "15:04:05")
+			buf, _ = appendFmt(buf, "%H:%M:%S", t)
 		// complex
 		case 'r':
-			buf, _ = appendFmt(buf, complexr, dt)
+			buf, _ = appendFmt(buf, "%I:%M:%S %p", t)
 		case 'R':
-			buf, _ = appendFmt(buf, complexR, dt)
+			buf, _ = appendFmt(buf, "%H:%M", t)
 		case 'T':
-			buf, _ = appendFmt(buf, complexT, dt)
+			buf, _ = appendFmt(buf, "%H:%M:%S", t)
 		case 'c':
-			buf, _ = appendFmt(buf, complexc, dt)
+			buf, _ = appendFmt(buf, "%a %b %e %H:%M:%S %Y", t)
 		case 'D':
-			buf, _ = appendFmt(buf, complexD, dt)
+			buf, _ = appendFmt(buf, "%m/%d/%y", t)
 		case 'F':
-			buf, _ = appendFmt(buf, complexF, dt)
+			buf, _ = appendFmt(buf, "%Y-%m-%d", t)
 		case 's':
-			buf = strconv.AppendInt(buf, dt.Unix(), 10)
+			buf = strconv.AppendInt(buf, t.Unix(), 10)
 		case 'x':
-			buf = dt.AppendFormat(buf, "01/02/06")
+			buf = t.AppendFormat(buf, "01/02/06")
 		}
 		off = p + 2
 	}

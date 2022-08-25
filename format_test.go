@@ -1,121 +1,274 @@
 package clock
 
 import (
-	"bytes"
 	"testing"
 	"time"
 
 	"github.com/koykov/fastconv"
 )
 
+type stageFmt struct {
+	key,
+	format,
+	expect string
+	time time.Time
+	err  error
+}
+
+type stageRFC3339 struct {
+	time   time.Time
+	expect string
+}
+
+var (
+	t97, _    = time.Parse("2006-01-02", "1997-04-19")
+	t0        = time.Unix(1136239445, 123456789).UTC()
+	stagesFmt = []stageFmt{
+		{
+			key:    "unexpected eof",
+			format: "%",
+			err:    ErrBadEOF,
+		},
+		{
+			key:    "percent",
+			format: "%%",
+			expect: "%",
+			time:   t97,
+		},
+		{
+			key:    "year short",
+			format: "%y",
+			expect: "97",
+			time:   t97,
+		},
+		{
+			key:    "year",
+			format: "%Y",
+			expect: "1997",
+			time:   t97,
+		},
+		{
+			key:    "century",
+			format: "%C",
+			expect: "19",
+			time:   t97,
+		},
+		{
+			key:    "month",
+			format: "%m",
+			expect: "04",
+			time:   t97,
+		},
+		{
+			key:    "month name short",
+			format: "%b",
+			expect: "Apr",
+			time:   t97,
+		},
+		{
+			key:    "month name",
+			format: "%B",
+			expect: "April",
+			time:   t97,
+		},
+		{
+			key:    "week number (sunday)",
+			format: "%U",
+			expect: "15",
+			time:   t97,
+		},
+		{
+			key:    "week number (monday)",
+			format: "%W",
+			expect: "15",
+			time:   t97,
+		},
+		{
+			key:    "week number (iso)",
+			format: "%V",
+			expect: "16",
+			time:   t97,
+		},
+		{
+			key:    "day",
+			format: "%d",
+			expect: "19",
+			time:   t97,
+		},
+		{
+			key:    "day (space pad)",
+			format: "%e",
+			expect: "19",
+			time:   t97,
+		},
+		{
+			key:    "day of year",
+			format: "%j",
+			expect: "109",
+			time:   t97,
+		},
+		{
+			key:    "day of week",
+			format: "%w",
+			expect: "6",
+			time:   t97,
+		},
+		{
+			key:    "day of week (iso)",
+			format: "%u",
+			expect: "6",
+			time:   t97,
+		},
+		{
+			key:    "day name short",
+			format: "%a",
+			expect: "Sat",
+			time:   t97,
+		},
+		{
+			key:    "day name",
+			format: "%A",
+			expect: "Saturday",
+			time:   t97,
+		},
+		{
+			key:    "hour",
+			format: "%H",
+			expect: "22",
+			time:   t0,
+		},
+		{
+			key:    "hour (space pad)",
+			format: "%k",
+			expect: "22",
+			time:   t0,
+		},
+		{
+			key:    "hour 12",
+			format: "%I",
+			expect: "10",
+			time:   t0,
+		},
+		{
+			key:    "hour 12 (space pad)",
+			format: "%l",
+			expect: "10",
+			time:   t0,
+		},
+		{
+			key:    "minute",
+			format: "%M",
+			expect: "04",
+			time:   t0,
+		},
+		{
+			key:    "second",
+			format: "%S",
+			expect: "05",
+			time:   t0,
+		},
+		{
+			key:    "AM/PM",
+			format: "%p",
+			expect: "PM",
+			time:   t0,
+		},
+		{
+			key:    "am/pm",
+			format: "%P",
+			expect: "pm",
+			time:   t0,
+		},
+		{
+			key:    "preferred time",
+			format: "%X",
+			expect: "22:04:05",
+			time:   t0,
+		},
+		{
+			key:    "unixtime",
+			format: "%s",
+			expect: "1136239445",
+			time:   t0,
+		},
+		{
+			key:    "complex/r",
+			format: "%r",
+			expect: "10:04:05 PM",
+			time:   t0,
+		},
+		{
+			key:    "complex/R",
+			format: "%R",
+			expect: "22:04",
+			time:   t0,
+		},
+		{
+			key:    "complex/T",
+			format: "%T",
+			expect: "22:04:05",
+			time:   t0,
+		},
+		{
+			key:    "complex/c",
+			format: "%c",
+			expect: "Mon Jan  2 22:04:05 2006",
+			time:   t0,
+		},
+		{
+			key:    "complex/D",
+			format: "%D",
+			expect: "04/19/97",
+			time:   t97,
+		},
+		{
+			key:    "complex/F",
+			format: "%F",
+			expect: "1997-04-19",
+			time:   t97,
+		},
+	}
+
+	stagesRFC3339 = []stageRFC3339{
+		{
+			time.Date(2008, 9, 17, 20, 4, 26, 0, time.UTC),
+			"2008-09-17T20:04:26Z",
+		},
+		{
+			time.Date(1994, 9, 17, 20, 4, 26, 0, time.FixedZone("EST", -18000)),
+			"1994-09-17T20:04:26-05:00",
+		},
+		{
+			time.Date(2000, 12, 26, 1, 15, 6, 0, time.FixedZone("OTO", 15600)),
+			"2000-12-26T01:15:06+04:20",
+		},
+	}
+)
+
 func TestFormat(t *testing.T) {
-	assert := func(t *testing.T, dt time.Time, format, expect string, err error) {
-		r, err1 := FormatStr(format, dt)
-		if err != nil && err1 != err {
-			t.FailNow()
-			return
-		}
-		if r != expect {
-			t.FailNow()
+	for _, stage := range stagesFmt {
+		t.Run(stage.key, func(t *testing.T) {
+			r, err := FormatStr(stage.format, stage.time)
+			if stage.err != nil {
+				if err != stage.err {
+					t.Errorf("error mismatch: '%s' vs '%s'", err.Error(), stage.err.Error())
+				}
+				return
+			}
+			if r != stage.expect {
+				t.Errorf("format mismatch: '%s' vs '%s'", r, stage.expect)
+			}
+		})
+	}
+}
+
+func TestFormatRFC3339(t *testing.T) {
+	for _, f := range stagesRFC3339 {
+		r, _ := FormatStr(RFC3339, f.time)
+		if r != f.expect {
+			t.Errorf("format RFC3339 mismatch: '%s' vs '%s'", r, f.expect)
 		}
 	}
-	now, _ := time.Parse("2006-01-02", "1997-04-19")
-	t.Run("eof", func(t *testing.T) {
-		assert(t, now, "unexpected EOF: %", "", ErrBadEOF)
-	})
-	t.Run("mod", func(t *testing.T) {
-		assert(t, now, "mod symbol: %%", "mod symbol: %", nil)
-	})
-
-	t.Run("year short", func(t *testing.T) {
-		assert(t, now, "year short: %y", "year short: 97", nil)
-	})
-	t.Run("year", func(t *testing.T) {
-		assert(t, now, "year short: %Y", "year short: 1997", nil)
-	})
-	t.Run("century", func(t *testing.T) {
-		assert(t, now, "year short: %C", "year short: 19", nil)
-	})
-
-	t.Run("month", func(t *testing.T) {
-		assert(t, now, "month: %m", "month: 04", nil)
-	})
-	t.Run("month short", func(t *testing.T) {
-		assert(t, now, "month short: %b", "month short: Apr", nil)
-	})
-	t.Run("month long", func(t *testing.T) {
-		assert(t, now, "month long: %B", "month long: April", nil)
-	})
-
-	t.Run("week number (sun)", func(t *testing.T) {
-		assert(t, now, "week number (sun): %U", "week number (sun): 15", nil)
-	})
-	t.Run("week number (iso)", func(t *testing.T) {
-		assert(t, now, "week number (iso): %V", "week number (iso): 16", nil)
-	})
-	t.Run("week number (mon)", func(t *testing.T) {
-		assert(t, now, "week number (mon): %W", "week number (mon): 15", nil)
-	})
-
-	t.Run("day", func(t *testing.T) {
-		assert(t, now, "day: %d", "day: 19", nil)
-	})
-	t.Run("day of month (space)", func(t *testing.T) {
-		assert(t, now, "day: %e", "day: 19", nil)
-	})
-	t.Run("day of year", func(t *testing.T) {
-		assert(t, now, "day of year: %j", "day of year: 109", nil)
-	})
-	t.Run("day of week", func(t *testing.T) {
-		assert(t, now, "day of week: %w", "day of week: 6", nil)
-	})
-	t.Run("day of week (iso)", func(t *testing.T) {
-		assert(t, now, "day of week (iso): %u", "day of week (iso): 6", nil)
-	})
-	t.Run("day short", func(t *testing.T) {
-		assert(t, now, "day short: %a", "day short: Sat", nil)
-	})
-	t.Run("day long", func(t *testing.T) {
-		assert(t, now, "day long: %A", "day long: Saturday", nil)
-	})
-
-	dt := time.Unix(1136239445, 123456789).UTC()
-	t.Run("hour (zero pad)", func(t *testing.T) {
-		assert(t, dt, "hour (zero pad): %H", "hour (zero pad): 22", nil)
-	})
-	t.Run("hour (space pad)", func(t *testing.T) {
-		assert(t, dt, "hour (space pad): %k", "hour (space pad): 22", nil)
-	})
-	t.Run("hour12 (zero pad)", func(t *testing.T) {
-		assert(t, dt, "hour12 (zero pad): %I", "hour12 (zero pad): 10", nil)
-	})
-	t.Run("hour12 (space pad)", func(t *testing.T) {
-		assert(t, dt, "hour12 (space pad): %l", "hour12 (space pad): 10", nil)
-	})
-	t.Run("minute", func(t *testing.T) {
-		assert(t, dt, "minute: %M", "minute: 04", nil)
-	})
-	t.Run("second", func(t *testing.T) {
-		assert(t, dt, "second: %S", "second: 05", nil)
-	})
-	t.Run("AM/PM", func(t *testing.T) {
-		assert(t, dt, "AM/PM: %p", "AM/PM: PM", nil)
-	})
-	t.Run("am/pm", func(t *testing.T) {
-		assert(t, dt, "am/pm: %P", "am/pm: pm", nil)
-	})
-	t.Run("nat time", func(t *testing.T) {
-		assert(t, dt, "nat time: %X", "nat time: 22:04:05", nil)
-	})
-	t.Run("complex r", func(t *testing.T) {
-		assert(t, dt, "complex r: %r", "complex r: 10:04:05 PM", nil)
-	})
-	t.Run("complex R", func(t *testing.T) {
-		assert(t, dt, "complex R: %r", "complex R: 10:04", nil)
-	})
-	t.Run("complex T", func(t *testing.T) {
-		assert(t, dt, "complex R: %r", "complex R: 10:04:05", nil)
-	})
 }
 
 func TestFormatNativeLayout(t *testing.T) {
@@ -169,82 +322,27 @@ func TestFormatNativeLayout(t *testing.T) {
 	})
 }
 
-func TestFormatInternal(t *testing.T) {
-	assert := func(t *testing.T, buf []byte, x, w int, pad byte, expect []byte) {
-		buf = buf[:0]
-		buf = appendInt(buf, x, w, pad)
-		if !bytes.Equal(buf, expect) {
-			t.FailNow()
-		}
-	}
-	var buf []byte
-	t.Run("appendInt 2018 2", func(t *testing.T) {
-		assert(t, buf, 2018, 2, '0', []byte("18"))
-	})
-	t.Run("appendInt 1997 4", func(t *testing.T) {
-		assert(t, buf, 1997, 4, '0', []byte("1997"))
-	})
-	t.Run("appendInt 34 4", func(t *testing.T) {
-		assert(t, buf, 34, 4, '0', []byte("0034"))
-	})
-}
-
 func BenchmarkFormat(b *testing.B) {
-	assert := func(b *testing.B, dt time.Time, format, expect string, err error) {
-		var (
-			buf  []byte
-			err1 error
-		)
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			buf = buf[:0]
-			buf, err1 = AppendFormat(buf, format, dt)
-			if err != nil && err1 != err {
-				b.FailNow()
-				return
+	for _, stage := range stagesFmt {
+		b.Run(stage.key, func(b *testing.B) {
+			var (
+				buf []byte
+				err error
+			)
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				buf = buf[:0]
+				buf, err = AppendFormat(buf, stage.format, stage.time)
+				if stage.err != nil {
+					if err != stage.err {
+						b.Errorf("error mismatch: '%s' vs '%s'", err.Error(), stage.err.Error())
+					}
+					return
+				}
+				if fastconv.B2S(buf) != stage.expect {
+					b.Errorf("format mismatch: '%s' vs '%s'", string(buf), stage.expect)
+				}
 			}
-			if fastconv.B2S(buf) != expect {
-				b.FailNow()
-			}
-		}
+		})
 	}
-	now, _ := time.Parse("2006", "1997")
-	b.Run("eof", func(b *testing.B) {
-		assert(b, now, "unexpected EOF: %", "", ErrBadEOF)
-	})
-	b.Run("mod", func(b *testing.B) {
-		assert(b, now, "mod symbol: %%", "mod symbol: %", nil)
-	})
-	b.Run("year short", func(b *testing.B) {
-		assert(b, now, "year short: %y", "year short: 97", nil)
-	})
-	b.Run("year", func(b *testing.B) {
-		assert(b, now, "year short: %Y", "year short: 1997", nil)
-	})
-	b.Run("century", func(b *testing.B) {
-		assert(b, now, "year short: %C", "year short: 19", nil)
-	})
-}
-
-func BenchmarkFormatInternal(b *testing.B) {
-	assert := func(b *testing.B, buf []byte, x, w int, pad byte, expect []byte) {
-		b.ReportAllocs()
-		for i := 0; i < b.N; i++ {
-			buf = buf[:0]
-			buf = appendInt(buf, x, w, pad)
-			if !bytes.Equal(buf, expect) {
-				b.FailNow()
-			}
-		}
-	}
-	var buf []byte
-	b.Run("appendInt 2018 2", func(b *testing.B) {
-		assert(b, buf, 2018, 2, '0', []byte("18"))
-	})
-	b.Run("appendInt 1997 4", func(b *testing.B) {
-		assert(b, buf, 1997, 4, '0', []byte("1997"))
-	})
-	b.Run("appendInt 34 4", func(b *testing.B) {
-		assert(b, buf, 34, 4, '0', []byte("0034"))
-	})
 }

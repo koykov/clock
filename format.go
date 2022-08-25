@@ -10,21 +10,21 @@ import (
 
 const (
 	Layout      = "%m/%d %h:%m:%s%p '%y %z"
-	ANSIC       = "%a %b %d %h:%m:%s %Y"
-	UnixDate    = "%a %b %d %h:%m:%s %Z %Y"
-	RubyDate    = "%a %b %d %h:%m:%s %z %Y"
-	RFC822      = "%d %b %y %h:%m %Z"
-	RFC822Z     = "%d %b %y %h:%m %z"
-	RFC850      = "%A, %d-%b-%y %h:%m:%s %Z"
-	RFC1123     = "%a, %d %b %Y %h:%m:%s %Z"
-	RFC1123Z    = "%a, %d %b %Y %h:%m:%s %z"
+	ANSIC       = "%a %b %e %H:%M:%S %Y"
+	UnixDate    = "%a %b %e %H:%M:%S %Z %Y"
+	RubyDate    = "%a %b %d %H:%M:%S %z %Y"
+	RFC822      = "%d %b %y %H:%M %Z"
+	RFC822Z     = "%d %b %y %H:%M %z"
+	RFC850      = "%A, %d-%b-%y %H:%M:%S %Z"
+	RFC1123     = "%a, %d %b %Y %H:%M:%S %Z"
+	RFC1123Z    = "%a, %d %b %Y %H:%M:%S %z"
 	RFC3339     = "%Y-%m-%dT%H:%M:%S%z"
-	RFC3339Nano = "%Y-%m-%dT%h:%m:%d.%nZ%z"
-	Kitchen     = "%h:%m%p"
-	Stamp       = "%b %d %h:%m:%s"
-	StampMilli  = "b %d %h:%m:%s.%i"
-	StampMicro  = "b %d %h:%m:%s.%u"
-	StampNano   = "b %d %h:%m:%s.%n"
+	RFC3339Nano = "%Y-%m-%dT%H:%M:%S.%n%z"
+	Kitchen     = "%L:%M%p"
+	Stamp       = "%b %e %H:%M:%S"
+	StampMilli  = "%b %e %H:%M:%S.%i"
+	StampMicro  = "%b %e %H:%M:%S.%o"
+	StampNano   = "%b %e %H:%M:%S.%N"
 )
 
 var (
@@ -196,6 +196,9 @@ func appendFmt(buf []byte, format string, t time.Time) ([]byte, error) {
 		case 'l':
 			hour := t.Hour()
 			buf = appendInt(buf, hour%12, 2, ' ')
+		case 'L':
+			hour := t.Hour()
+			buf = strconv.AppendInt(buf, int64(hour%12), 10)
 		case 'M':
 			min := t.Minute()
 			buf = appendInt(buf, min, 2, '0')
@@ -214,6 +217,18 @@ func appendFmt(buf []byte, format string, t time.Time) ([]byte, error) {
 			} else {
 				buf = append(buf, "am"...)
 			}
+		case 'i':
+			ns := t.UnixMilli()
+			buf = appendInt(buf, int(ns%1e3), 3, '0')
+		case 'o':
+			us := t.UnixMicro()
+			buf = appendInt(buf, int(us%1e6), 6, '0')
+		case 'n':
+			ns := t.Nanosecond()
+			buf = appendNano(buf, ns, 9)
+		case 'N':
+			ns := t.Nanosecond()
+			buf = appendInt(buf, ns, 9, '0')
 		case 'X':
 			buf, _ = appendFmt(buf, "%H:%M:%S", t)
 		// complex
@@ -275,4 +290,14 @@ func appendInt(buf []byte, x, w int, pad byte) []byte {
 		}
 	}
 	return buf
+}
+
+func appendNano(buf []byte, x, w int) []byte {
+	for x > 0 {
+		if x%10 > 0 {
+			break
+		}
+		x = x / 10
+	}
+	return appendInt(buf, x, w, '0')
 }

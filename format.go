@@ -18,8 +18,8 @@ const (
 	RFC850      = "%A, %d-%b-%y %h:%m:%s %Z"
 	RFC1123     = "%a, %d %b %Y %h:%m:%s %Z"
 	RFC1123Z    = "%a, %d %b %Y %h:%m:%s %z"
-	RFC3339     = "%Y-%m-%dT%h:%m:%dZ%o"
-	RFC3339Nano = "%Y-%m-%dT%h:%m:%d.%nZ%o"
+	RFC3339     = "%Y-%m-%dT%H:%M:%S%z"
+	RFC3339Nano = "%Y-%m-%dT%h:%m:%d.%nZ%z"
 	Kitchen     = "%h:%m%p"
 	Stamp       = "%b %d %h:%m:%s"
 	StampMilli  = "b %d %h:%m:%s.%i"
@@ -232,7 +232,26 @@ func appendFmt(buf []byte, format string, t time.Time) ([]byte, error) {
 		case 's':
 			buf = strconv.AppendInt(buf, t.Unix(), 10)
 		case 'x':
-			buf = t.AppendFormat(buf, "01/02/06")
+			buf, _ = appendFmt(buf, "%m/%d/%y", t)
+		// timezones
+		case 'z':
+			_, offset := t.Zone()
+			if offset == 0 {
+				buf = append(buf, 'Z')
+			} else {
+				if offset < 0 {
+					buf = append(buf, '-')
+					offset = -offset
+				} else {
+					buf = append(buf, '+')
+				}
+				buf = appendInt(buf, offset/3600, 2, '0')
+				buf = append(buf, ':')
+				buf = appendInt(buf, offset/60%60, 2, '0')
+			}
+		case 'Z':
+			zone, _ := t.Zone()
+			buf = append(buf, zone...)
 		}
 		off = p + 2
 	}

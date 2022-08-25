@@ -78,6 +78,11 @@ var (
 	complexr = []byte("%I:%M:%S %p")
 	complexR = []byte("%H:%M")
 	complexT = []byte("%H:%M:%S")
+	complexc = []byte("%a %b %e %H:%M:%S %Y")
+	complexD = []byte("%m/%d/%y")
+	complexF = []byte("%Y-%m-%d")
+
+	_ = Format
 )
 
 func AppendFormat(dst []byte, format string, datetime time.Time) ([]byte, error) {
@@ -107,7 +112,7 @@ func appendFmt(buf []byte, format []byte, dt time.Time) ([]byte, error) {
 		if p == len(format)-1 {
 			return buf, ErrBadEOF
 		}
-		if p-1 > off {
+		if p-1 >= off {
 			buf = append(buf, format[off:p]...)
 		}
 		switch format[p+1] {
@@ -225,6 +230,16 @@ func appendFmt(buf []byte, format []byte, dt time.Time) ([]byte, error) {
 			buf, _ = appendFmt(buf, complexR, dt)
 		case 'T':
 			buf, _ = appendFmt(buf, complexT, dt)
+		case 'c':
+			buf, _ = appendFmt(buf, complexc, dt)
+		case 'D':
+			buf, _ = appendFmt(buf, complexD, dt)
+		case 'F':
+			buf, _ = appendFmt(buf, complexF, dt)
+		case 's':
+			buf = strconv.AppendInt(buf, dt.Unix(), 10)
+		case 'x':
+			buf = dt.AppendFormat(buf, "01/02/06")
 		}
 		off = p + 2
 	}

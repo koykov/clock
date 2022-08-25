@@ -243,6 +243,24 @@ var (
 			"2000-12-26T01:15:06+04:20",
 		},
 	}
+
+	tNative      = time.Unix(0, 1233810057012345600)
+	stagesNative = []stageFmt{
+		{key: "ANSIC", format: ANSIC, expect: "Thu Feb  5 07:00:57 2009", time: tNative},
+		{key: "UnixDate", format: UnixDate, expect: "Thu Feb  5 07:00:57 EET 2009", time: tNative},
+		{key: "RubyDate", format: RubyDate, expect: "Thu Feb 05 07:00:57 +0200 2009", time: tNative},
+		{key: "RFC822", format: RFC822, expect: "05 Feb 09 07:00 EET", time: tNative},
+		{key: "RFC850", format: RFC850, expect: "Thursday, 05-Feb-09 07:00:57 EET", time: tNative},
+		{key: "RFC1123", format: RFC1123, expect: "Thu, 05 Feb 2009 07:00:57 EET", time: tNative},
+		{key: "RFC1123Z", format: RFC1123Z, expect: "Thu, 05 Feb 2009 07:00:57 +0200", time: tNative},
+		{key: "RFC3339", format: RFC3339, expect: "2009-02-05T07:00:57+02:00", time: tNative},
+		{key: "RFC3339Nano", format: RFC3339Nano, expect: "2009-02-05T07:00:57.0123456+02:00", time: tNative},
+		{key: "Kitchen", format: Kitchen, expect: "7:00AM", time: tNative},
+		{key: "Stamp", format: Stamp, expect: "Feb  5 07:00:57", time: tNative},
+		{key: "StampMilli", format: StampMilli, expect: "Feb  5 07:00:57.012", time: tNative},
+		{key: "StampMicro", format: StampMicro, expect: "Feb  5 07:00:57.012345", time: tNative},
+		{key: "StampNano", format: StampNano, expect: "Feb  5 07:00:57.012345600", time: tNative},
+	}
 )
 
 func TestFormat(t *testing.T) {
@@ -263,63 +281,23 @@ func TestFormat(t *testing.T) {
 }
 
 func TestFormatRFC3339(t *testing.T) {
-	for _, f := range stagesRFC3339 {
-		r, _ := FormatStr(RFC3339, f.time)
-		if r != f.expect {
-			t.Errorf("format RFC3339 mismatch: '%s' vs '%s'", r, f.expect)
+	for _, stage := range stagesRFC3339 {
+		r, _ := FormatStr(RFC3339, stage.time)
+		if r != stage.expect {
+			t.Errorf("format RFC3339 mismatch: '%s' vs '%s'", r, stage.expect)
 		}
 	}
 }
 
 func TestFormatNativeLayout(t *testing.T) {
-	t.Run("Layout", func(t *testing.T) {
-		t.Log(time.Now().Format(time.Layout))
-	})
-	t.Run("ANSIC", func(t *testing.T) {
-		t.Log(time.Now().Format(time.ANSIC))
-	})
-	t.Run("UnixDate", func(t *testing.T) {
-		t.Log(time.Now().Format(time.UnixDate))
-	})
-	t.Run("RubyDate", func(t *testing.T) {
-		t.Log(time.Now().Format(time.RubyDate))
-	})
-	t.Run("RFC822", func(t *testing.T) {
-		t.Log(time.Now().Format(time.RFC822))
-	})
-	t.Run("RFC822Z", func(t *testing.T) {
-		t.Log(time.Now().Format(time.RFC822Z))
-	})
-	t.Run("RFC850", func(t *testing.T) {
-		t.Log(time.Now().Format(time.RFC850))
-	})
-	t.Run("RFC1123", func(t *testing.T) {
-		t.Log(time.Now().Format(time.RFC1123))
-	})
-	t.Run("RFC1123Z", func(t *testing.T) {
-		t.Log(time.Now().Format(time.RFC1123Z))
-	})
-	t.Run("RFC3339", func(t *testing.T) {
-		t.Log(time.Now().Format(time.RFC3339))
-	})
-	t.Run("RFC3339Nano", func(t *testing.T) {
-		t.Log(time.Now().Format(time.RFC3339Nano))
-	})
-	t.Run("Kitchen", func(t *testing.T) {
-		t.Log(time.Now().Format(time.Kitchen))
-	})
-	t.Run("Stamp", func(t *testing.T) {
-		t.Log(time.Now().Format(time.Stamp))
-	})
-	t.Run("StampMilli", func(t *testing.T) {
-		t.Log(time.Now().Format(time.StampMilli))
-	})
-	t.Run("StampMicro", func(t *testing.T) {
-		t.Log(time.Now().Format(time.StampMicro))
-	})
-	t.Run("StampNano", func(t *testing.T) {
-		t.Log(time.Now().Format(time.StampNano))
-	})
+	for _, stage := range stagesNative {
+		t.Run(stage.key, func(t *testing.T) {
+			r, _ := FormatStr(stage.format, stage.time)
+			if r != stage.expect {
+				t.Errorf("format native mismatch: '%s' vs '%s'", r, stage.expect)
+			}
+		})
+	}
 }
 
 func BenchmarkFormat(b *testing.B) {
@@ -331,8 +309,7 @@ func BenchmarkFormat(b *testing.B) {
 			)
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
-				buf = buf[:0]
-				buf, err = AppendFormat(buf, stage.format, stage.time)
+				buf, err = AppendFormat(buf[:0], stage.format, stage.time)
 				if stage.err != nil {
 					if err != stage.err {
 						b.Errorf("error mismatch: '%s' vs '%s'", err.Error(), stage.err.Error())
@@ -341,6 +318,21 @@ func BenchmarkFormat(b *testing.B) {
 				}
 				if fastconv.B2S(buf) != stage.expect {
 					b.Errorf("format mismatch: '%s' vs '%s'", string(buf), stage.expect)
+				}
+			}
+		})
+	}
+}
+
+func BenchmarkFormatNativeLayout(b *testing.B) {
+	for _, stage := range stagesNative {
+		b.Run(stage.key, func(b *testing.B) {
+			var buf []byte
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				buf, _ = AppendFormat(buf[:0], stage.format, stage.time)
+				if fastconv.B2S(buf) != stage.expect {
+					b.Errorf("format native mismatch: '%s' vs '%s'", string(buf), stage.expect)
 				}
 			}
 		})

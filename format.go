@@ -125,7 +125,7 @@ func appendFmt(buf []byte, format string, t time.Time) ([]byte, error) {
 		case 'm':
 			month := t.Month()
 			buf = appendInt(buf, int(month), 2, '0')
-		case 'b':
+		case 'b', 'h':
 			month := t.Month()
 			buf = append(buf, shortMonthNames[month-1]...)
 		case 'B':
@@ -246,6 +246,8 @@ func appendFmt(buf []byte, format string, t time.Time) ([]byte, error) {
 			buf, _ = appendFmt(buf, "%Y-%m-%d", t)
 		case 's':
 			buf = strconv.AppendInt(buf, t.Unix(), 10)
+		case 'v':
+			buf, _ = appendFmt(buf, "%e-%b-%Y", t)
 		case 'x':
 			buf, _ = appendFmt(buf, "%m/%d/%y", t)
 		// timezones

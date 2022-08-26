@@ -225,7 +225,7 @@ func appendFmt(buf []byte, format string, t time.Time) ([]byte, error) {
 			buf = appendInt(buf, int(us%1e6), 6, '0')
 		case 'n':
 			ns := t.Nanosecond()
-			buf = appendNano(buf, ns, 9)
+			buf = appendNano(buf, ns, 7)
 		case 'N':
 			ns := t.Nanosecond()
 			buf = appendInt(buf, ns, 9, '0')

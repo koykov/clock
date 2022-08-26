@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	Layout      = "%m/%d %h:%m:%s%p '%y %z"
+	Layout      = "%m/%d %H:%M:%S%p '%y %z"
 	ANSIC       = "%a %b %e %H:%M:%S %Y"
 	UnixDate    = "%a %b %e %H:%M:%S %Z %Y"
 	RubyDate    = "%a %b %d %H:%M:%S %z %Y"
@@ -261,7 +261,7 @@ func appendFmt(buf []byte, format string, t time.Time) ([]byte, error) {
 					buf = append(buf, '+')
 				}
 				buf = appendInt(buf, offset/3600, 2, '0')
-				buf = append(buf, ':')
+				// buf = append(buf, ':')
 				buf = appendInt(buf, offset/60%60, 2, '0')
 			}
 		case 'Z':

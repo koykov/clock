@@ -62,21 +62,23 @@ var (
 
 	stagesRFC3339 = []stageRFC3339{
 		{time.Date(2008, 9, 17, 20, 4, 26, 0, time.UTC), "2008-09-17T20:04:26Z"},
-		{time.Date(1994, 9, 17, 20, 4, 26, 0, time.FixedZone("EST", -18000)), "1994-09-17T20:04:26-05:00"},
-		{time.Date(2000, 12, 26, 1, 15, 6, 0, time.FixedZone("OTO", 15600)), "2000-12-26T01:15:06+04:20"},
+		{time.Date(1994, 9, 17, 20, 4, 26, 0, time.FixedZone("EST", -18000)), "1994-09-17T20:04:26-0500"},
+		{time.Date(2000, 12, 26, 1, 15, 6, 0, time.FixedZone("OTO", 15600)), "2000-12-26T01:15:06+0420"},
 	}
 
 	tNative      = time.Unix(0, 1233810057012345600)
 	stagesNative = []stageFmt{
+		{key: "Layout", format: Layout, expect: "02/05 07:00:57AM '09 +0200", time: tNative},
 		{key: "ANSIC", format: ANSIC, expect: "Thu Feb  5 07:00:57 2009", time: tNative},
 		{key: "UnixDate", format: UnixDate, expect: "Thu Feb  5 07:00:57 EET 2009", time: tNative},
 		{key: "RubyDate", format: RubyDate, expect: "Thu Feb 05 07:00:57 +0200 2009", time: tNative},
 		{key: "RFC822", format: RFC822, expect: "05 Feb 09 07:00 EET", time: tNative},
+		{key: "RFC822Z", format: RFC822Z, expect: "05 Feb 09 07:00 +0200", time: tNative},
 		{key: "RFC850", format: RFC850, expect: "Thursday, 05-Feb-09 07:00:57 EET", time: tNative},
 		{key: "RFC1123", format: RFC1123, expect: "Thu, 05 Feb 2009 07:00:57 EET", time: tNative},
 		{key: "RFC1123Z", format: RFC1123Z, expect: "Thu, 05 Feb 2009 07:00:57 +0200", time: tNative},
-		{key: "RFC3339", format: RFC3339, expect: "2009-02-05T07:00:57+02:00", time: tNative},
-		{key: "RFC3339Nano", format: RFC3339Nano, expect: "2009-02-05T07:00:57.0123456+02:00", time: tNative},
+		{key: "RFC3339", format: RFC3339, expect: "2009-02-05T07:00:57+0200", time: tNative},
+		{key: "RFC3339Nano", format: RFC3339Nano, expect: "2009-02-05T07:00:57.0123456+0200", time: tNative},
 		{key: "Kitchen", format: Kitchen, expect: "7:00AM", time: tNative},
 		{key: "Stamp", format: Stamp, expect: "Feb  5 07:00:57", time: tNative},
 		{key: "StampMilli", format: StampMilli, expect: "Feb  5 07:00:57.012", time: tNative},

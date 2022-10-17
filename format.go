@@ -218,10 +218,10 @@ func appendFmt(buf []byte, format string, t time.Time) ([]byte, error) {
 				buf = append(buf, "am"...)
 			}
 		case 'i':
-			ns := t.UnixMilli()
+			ns := t.Unix()*1e3 + int64(t.Nanosecond())/1e6
 			buf = appendInt(buf, int(ns%1e3), 3, '0')
 		case 'o':
-			us := t.UnixMicro()
+			us := t.Unix()*1e6 + int64(t.Nanosecond())/1e3
 			buf = appendInt(buf, int(us%1e6), 6, '0')
 		case 'n':
 			ns := t.Nanosecond()

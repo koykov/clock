@@ -3,7 +3,7 @@ module github.com/koykov/clock
 go 1.16
 
 require (
-	github.com/koykov/bytealg v0.0.0-20211029190941-81777d9bda75
-	github.com/koykov/fastconv v0.0.0-20211028200057-f6897ace3bc2
-	github.com/koykov/policy v0.0.0-20211205213434-fe65faba0cab
+	github.com/koykov/bytealg v1.0.1
+	github.com/koykov/fastconv v1.0.0
+	github.com/koykov/policy v1.0.0
 )

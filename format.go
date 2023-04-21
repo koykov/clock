@@ -97,7 +97,7 @@ func FormatStr(format string, datetime time.Time) (string, error) {
 func appendFmt(buf []byte, format string, t time.Time) ([]byte, error) {
 	off := 0
 	for {
-		p := bytealg.IndexAtStr(format, "%", off)
+		p := bytealg.IndexAt(format, "%", off)
 		if p == -1 {
 			buf = append(buf, format[off:]...)
 			return buf, nil

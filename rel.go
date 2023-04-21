@@ -12,7 +12,7 @@ func Relative(raw string) (dur time.Duration, err error) {
 		neg bool
 		off int
 	)
-	if raw = bytealg.TrimStr(raw, " "); len(raw) == 0 {
+	if raw = bytealg.Trim(raw, " "); len(raw) == 0 {
 		err = ErrNoDur
 		return
 	}

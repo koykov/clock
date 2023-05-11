@@ -1,15 +1,14 @@
 package clock
 
 import (
+	"sync"
 	"sync/atomic"
 	"time"
-
-	"github.com/koykov/policy"
 )
 
 type sched struct {
 	spinlock uint32
-	lock     policy.Lock
+	mux      sync.RWMutex
 	buf      []schedRule
 }
 
@@ -32,8 +31,8 @@ func (s *sched) slocked() bool {
 }
 
 func (s *sched) register(dur time.Duration, fn func(), now time.Time) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.mux.Lock()
+	defer s.mux.Unlock()
 	s.buf = append(s.buf, schedRule{
 		fn:   fn,
 		dur:  dur,
@@ -46,7 +45,11 @@ func (s *sched) apply(now time.Time) {
 		return
 	}
 	s.slock()
-	defer s.sunlock()
+	s.mux.RLock()
+	defer func() {
+		s.mux.RUnlock()
+		s.sunlock()
+	}()
 	for i := 0; i < len(s.buf); i++ {
 		r := &s.buf[i]
 		if r.next.Before(now) {

@@ -4,8 +4,6 @@ import (
 	"context"
 	"sync/atomic"
 	"time"
-
-	"github.com/koykov/policy"
 )
 
 const (
@@ -77,7 +75,7 @@ func (c *Clock) Stop() {
 	}
 }
 
-func (c Clock) Active() bool {
+func (c *Clock) Active() bool {
 	return atomic.LoadInt32(&c.status) == StatusActive
 }
 
@@ -103,9 +101,7 @@ func (c *Clock) Schedule(dur time.Duration, fn func()) {
 	if c.sched == nil {
 		c.sched = &sched{}
 	}
-	c.sched.lock.SetPolicy(policy.Locked)
 	c.sched.register(dur, fn, time.Now())
-	c.sched.lock.SetPolicy(policy.LockFree)
 }
 
 func (c *Clock) tick() {

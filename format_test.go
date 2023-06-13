@@ -114,6 +114,7 @@ func TestFormatRFC3339(t *testing.T) {
 }
 
 func TestFormatNativeLayout(t *testing.T) {
+	tNative.UTC()
 	for _, stage := range stagesNative {
 		t.Run(stage.key, func(t *testing.T) {
 			r, _ := FormatStr(stage.format, stage.time)

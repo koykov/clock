@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/koykov/bytealg"
-	"github.com/koykov/fastconv"
+	"github.com/koykov/byteconv"
 )
 
 const (
@@ -91,7 +91,7 @@ func FormatStr(format string, datetime time.Time) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fastconv.B2S(r), nil
+	return byteconv.B2S(r), nil
 }
 
 func appendFmt(buf []byte, format string, t time.Time) ([]byte, error) {

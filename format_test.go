@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/koykov/fastconv"
+	"github.com/koykov/byteconv"
 )
 
 type stageFmt struct {
@@ -141,7 +141,7 @@ func BenchmarkFormat(b *testing.B) {
 					}
 					return
 				}
-				if fastconv.B2S(buf) != stage.expect {
+				if byteconv.B2S(buf) != stage.expect {
 					b.Errorf("format mismatch: '%s' vs '%s'", string(buf), stage.expect)
 				}
 			}
@@ -156,7 +156,7 @@ func BenchmarkFormatNativeLayout(b *testing.B) {
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
 				buf, _ = AppendFormat(buf[:0], stage.format, stage.time)
-				if fastconv.B2S(buf) != stage.expect {
+				if byteconv.B2S(buf) != stage.expect {
 					b.Errorf("format native mismatch: '%s' vs '%s'", string(buf), stage.expect)
 				}
 			}

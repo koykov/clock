@@ -86,7 +86,12 @@ func Format(format string, datetime time.Time) ([]byte, error) {
 	return AppendFormat(nil, format, datetime)
 }
 
+// DEPRECATED: use FormatString isntead.
 func FormatStr(format string, datetime time.Time) (string, error) {
+	return FormatString(format, datetime)
+}
+
+func FormatString(format string, datetime time.Time) (string, error) {
 	r, err := AppendFormat(nil, format, datetime)
 	if err != nil {
 		return "", err
@@ -97,7 +102,7 @@ func FormatStr(format string, datetime time.Time) (string, error) {
 func appendFmt(buf []byte, format string, t time.Time) ([]byte, error) {
 	off := 0
 	for {
-		p := bytealg.IndexAt(format, "%", off)
+		p := bytealg.IndexAtString(format, "%", off)
 		if p == -1 {
 			buf = append(buf, format[off:]...)
 			return buf, nil
@@ -200,8 +205,8 @@ func appendFmt(buf []byte, format string, t time.Time) ([]byte, error) {
 			hour := t.Hour()
 			buf = strconv.AppendInt(buf, int64(hour%12), 10)
 		case 'M':
-			min := t.Minute()
-			buf = appendInt(buf, min, 2, '0')
+			mn := t.Minute()
+			buf = appendInt(buf, mn, 2, '0')
 		case 'S':
 			sec := t.Second()
 			buf = appendInt(buf, sec, 2, '0')

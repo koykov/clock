@@ -90,7 +90,7 @@ var (
 func TestFormat(t *testing.T) {
 	for _, stage := range stagesFmt {
 		t.Run(stage.key, func(t *testing.T) {
-			r, err := FormatStr(stage.format, stage.time)
+			r, err := FormatString(stage.format, stage.time)
 			if stage.err != nil {
 				if err != stage.err {
 					t.Errorf("error mismatch: '%s' vs '%s'", err.Error(), stage.err.Error())
@@ -106,7 +106,7 @@ func TestFormat(t *testing.T) {
 
 func TestFormatRFC3339(t *testing.T) {
 	for _, stage := range stagesRFC3339 {
-		r, _ := FormatStr(RFC3339, stage.time)
+		r, _ := FormatString(RFC3339, stage.time)
 		if r != stage.expect {
 			t.Errorf("format RFC3339 mismatch: '%s' vs '%s'", r, stage.expect)
 		}
@@ -117,7 +117,7 @@ func TestFormatNativeLayout(t *testing.T) {
 	tNative.UTC()
 	for _, stage := range stagesNative {
 		t.Run(stage.key, func(t *testing.T) {
-			r, _ := FormatStr(stage.format, stage.time)
+			r, _ := FormatString(stage.format, stage.time)
 			if r != stage.expect {
 				t.Errorf("format native mismatch: '%s' vs '%s'", r, stage.expect)
 			}

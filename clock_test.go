@@ -51,16 +51,17 @@ func TestRelative(t *testing.T) {
 		{"2 h", "2h0m0s"},
 		{"2hours", "2h0m0s"},
 		{"48hr", "48h0m0s"},
-		{"1y 12month", "9496h33m36s"},
+		{"1y 12month", "17532h43m12s"},
 		{"55s500ms", "55.5s"},
 		{"300ms20s 5day", "120h0m20.3s"},
 		{"-2h 30min", "-2h30m0s"},
 		{"-2 h", "-2h0m0s"},
 		{"-2hours", "-2h0m0s"},
 		{"-48hr", "-48h0m0s"},
-		{"-1y 12month", "-9496h33m36s"},
+		{"-1y 12month", "-17532h43m12s"},
 		{"-55s500ms", "-55.5s"},
 		{"-300ms20s 5day", "-120h0m20.3s"},
+		{"2century 43 y 3M 3 w 15d  17 h 43m  34 s 400ms 123 us  55 ns", "2132850h41m22.400000055s"},
 	}
 	for _, span := range spans {
 		t.Run(span.key, func(t *testing.T) {

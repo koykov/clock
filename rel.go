@@ -52,16 +52,16 @@ func Relative(raw string) (dur time.Duration, err error) {
 			dur += n * 168 * time.Hour
 		case "months", "month", "M":
 			d := 24 * time.Hour
-			dur += d*30 + d*44/100
+			dur += n * (d*30 + d*44/100)
 		case "years", "year", "y":
 			d := 24 * time.Hour
-			dur += d*365 + d*1/4
+			dur += n * (d*365 + d*1/4)
 		case "century", "cen", "c":
 			d := 24 * time.Hour
-			dur += d * 36525
+			dur += n * (d * 36525)
 		case "millennium", "mil":
 			d := 24 * time.Hour
-			dur += d * 365250
+			dur += n * (d * 365250)
 		}
 	}
 	if neg {

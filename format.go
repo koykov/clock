@@ -86,7 +86,7 @@ func Format(format string, datetime time.Time) ([]byte, error) {
 	return AppendFormat(nil, format, datetime)
 }
 
-// DEPRECATED: use FormatString isntead.
+// DEPRECATED: use FormatString instead.
 func FormatStr(format string, datetime time.Time) (string, error) {
 	return FormatString(format, datetime)
 }

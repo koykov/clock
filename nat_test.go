@@ -7,9 +7,9 @@ func TestRelativeNatural(t *testing.T) {
 		key, exp string
 	}{
 		// now
-		{"now", "..."},
-		{"right now", "..."},
-		{"  right  now  ", "..."},
+		{"now", "2026-01-01 00:00:00 +0000 UTC"},
+		{"right now", "2026-01-01 00:00:00 +0000 UTC"},
+		{"  right  now  ", "2026-01-01 00:00:00 +0000 UTC"},
 
 		// seconds
 		{"1 second", "..."},
@@ -208,8 +208,13 @@ func TestRelativeNatural(t *testing.T) {
 		{"Remind me in one month from now", "..."},
 		{"Remind me in one month from now at 7am", "..."},
 	}
+	const base = 1767214800 // 2026-01-01 00:00:00
+	clc := NewStuck(base, 0)
 	for _, span := range spans {
-		_ = span
-		// ...
+		if span.exp == "..." {
+			continue
+		}
+		tt := clc.RelativeNatural(span.key)
+		t.Log(tt.UTC().String())
 	}
 }

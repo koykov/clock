@@ -97,6 +97,13 @@ func (c *Clock) Relative(raw string) time.Time {
 	return time.Time{}
 }
 
+func (c *Clock) RelativeNatural(raw string) time.Time {
+	if dur, err := RelativeNatural(raw); err == nil {
+		return c.Now().Add(dur)
+	}
+	return time.Time{}
+}
+
 func (c *Clock) Schedule(dur time.Duration, fn func()) {
 	if c.sched == nil {
 		c.sched = &sched{}

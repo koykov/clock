@@ -39,19 +39,29 @@ var natUnit = map[string]time.Duration{
 }
 
 func RelativeNatural(raw string) (dur time.Duration, err error) {
-	raw, tkn, ok := natToken(raw)
-	if !ok {
-		return 0, nil
-	}
 	var num int
 	var d time.Duration
-	if num, ok = natNum[tkn]; !ok {
-		num = 1
-		if d, ok = natUnit[tkn]; !ok {
-			d = 0
+	for {
+		raw1, tkn, ok := natToken(raw)
+		raw = raw1
+		if !ok {
+			return 0, nil
+		}
+		num1, numOK := natNum[tkn]
+		dur1, durOK := natUnit[tkn]
+		switch {
+		case numOK && durOK:
+			num, d = num1, dur1
+			return -time.Duration(num) * d, nil
+		case numOK && !durOK:
+			// ???
+		case !numOK && durOK:
+			num, d = 1, dur
+			return -time.Duration(num) * d, nil
+		case !numOK && !durOK:
+			continue
 		}
 	}
-	return -time.Duration(num) * d, nil
 }
 
 func natToken(s string) (string, string, bool) {
